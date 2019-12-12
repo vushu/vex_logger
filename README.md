@@ -5,7 +5,7 @@
 - header only logger
 
 copy the logger.h in your project and use.  
-as default all logged are written to /tmp/vex_log.txt;
+as default all logs are written to /tmp/vex_log.txt;
 
 ## How to use
 
@@ -24,4 +24,7 @@ log_output("/home/myuser/my_log.txt");
 
 ## Showcase
 ![](log_example.png)
+
+## TODO:
+Filter function
 
