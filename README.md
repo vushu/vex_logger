@@ -2,6 +2,7 @@
 
 - simple
 - tiny
+- nothing fancy
 - thread safe
 - header only logger
 
