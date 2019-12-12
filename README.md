@@ -15,7 +15,7 @@ log_warn("Hello agent %s", "007");
 log_debug("Hello agent %s", "007");
 log_error("Hello agent %s", "007");
 
-// to append instead of overwritting
+// to append instead of overwritting the log file
 log_append();
 // to set your own output path
 log_output("/home/myuser/my_log.txt");
