@@ -2,8 +2,8 @@
 
 ## Description
 
-Just a simple and tiny header only logger, copy the logger.h in your project and use.  
-all last logged are in /tmp/vex_last_log.txt;
+Just a simple and tiny header only logger, copy the logger.h in your project and use.
+all last logged are in /tmp/vex_log.txt;
 
 ## How to use
 
@@ -12,6 +12,11 @@ log_info("Hello agent %s", "007");
 log_warn("Hello agent %s", "007");
 log_debug("Hello agent %s", "007");
 log_error("Hello agent %s", "007");
+
+// to append instead of overwritting
+log_append();
+// to set your own output path
+log_output("/home/myuser/my_log.txt");
 
 ```
 

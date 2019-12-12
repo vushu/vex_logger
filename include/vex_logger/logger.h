@@ -38,6 +38,15 @@
 #define log_filter(...) \
     vex_logger::filter(__VA_ARGS__)
 
+#define log_append() \
+    vex_logger::append_output()
+
+#define log_output(path) \
+    vex_logger::output_path(path)
+
+#define log_output(path) \
+    vex_logger::output_path(path)
+
 #include <cstdarg>
 #include <cstdio>
 #include <ctime>
@@ -62,8 +71,9 @@ struct Log_entry {
     std::string current_line;
 };
 
-const std::string log_path = "/tmp/vex_last_log.txt";
+std::string log_path = "/tmp/vex_log.txt";
 
+bool append_log = false;
 bool log_listener_started = false;
 //lock
 std::mutex buffer_mutex;
@@ -85,6 +95,15 @@ std::string get_file_name(std::string filePath, bool withExtension = true, char 
     return "";
 }
 
+void output_path(std::string path)
+{
+    log_path = path;
+}
+
+void append_output() {
+    append_log = true;
+
+}
 void enqueue(Log_entry entry)
 {
     std::unique_lock<std::mutex> lock{ buffer_mutex };
@@ -184,7 +203,7 @@ static std::string get_timestamp()
     local = localtime(&now.tv_sec);
 
     char buffer[100];
-    sprintf(buffer, "%02d:%02d:%02d.%03ld", local->tm_hour, local->tm_min, local->tm_sec, now.tv_usec / 1000);
+    sprintf(buffer, "%d-%d-%d %02d:%02d:%02d.%03ld", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min, local->tm_sec, now.tv_usec / 1000);
     return buffer;
 }
 
@@ -213,10 +232,11 @@ void run_log_listener()
 void start_logging()
 {
     if (log_listener_started) {
-        std::ofstream outfile(log_path);
-
-        outfile << "";
-        outfile.close();
+        if (!append_log) {
+            std::ofstream outfile(log_path);
+            outfile << "";
+            outfile.close();
+        }
         std::thread log_thread(run_log_listener);
         log_thread.join();
     }
@@ -234,7 +254,7 @@ void log(std::string log_severity, int line, const char* file, const char* msg, 
     Log_entry entry = create_log_entry(log_severity, message, file, line);
     print_log_entry(entry);
     // for non blocking maybe threadpool some day
-    std::thread enqueue_thread(enqueue,entry);
+    std::thread enqueue_thread(enqueue, entry);
     enqueue_thread.join();
 }
 };
