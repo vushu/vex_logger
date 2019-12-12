@@ -1,8 +1,10 @@
 # vex_logger
 
-## Description
+- simple
+- tiny
+- header only logger
 
-Just a simple and tiny header only logger, copy the logger.h in your project and use.
+copy the logger.h in your project and use.
 all last logged are in /tmp/vex_log.txt;
 
 ## How to use
