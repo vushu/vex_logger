@@ -1,4 +1,3 @@
-
 # vex_logger
 
 ## Description
