@@ -22,6 +22,12 @@ log_append(true);
 // to set your own output path
 log_output("/home/myuser/my_log.txt");
 
+// filter logs
+log_filter("info", "error", "warn");
+
+// remove filter if added
+log_remove_filter("info", "warn");
+
 ```
 
 ## Showcase

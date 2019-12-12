@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cctype>
 #define log_info(msg, ...) \
     vex_logger::log("INFO", __LINE__, __FILE__, msg, __VA_ARGS__)
 
@@ -35,23 +37,12 @@
 #define log_error(msg, ...) \
     vex_logger::log("ERROR", __LINE__, __FILE__, msg, __VA_ARGS__)
 
-#define log_filter(...) \
-    vex_logger::filter(__VA_ARGS__)
-
-#define log_append(enable) \
-    vex_logger::append_output(enable)
-
-#define log_output(path) \
-    vex_logger::output_path(path)
-
-#define log_output(path) \
-    vex_logger::output_path(path)
-
 #include <cstdarg>
 #include <cstdio>
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <stdio.h>
@@ -73,6 +64,7 @@ struct Log_entry {
 
 std::string log_path = "/tmp/vex_log.txt";
 
+std::map<std::string, std::string> filters;
 bool append_log = false;
 bool log_listener_started = false;
 //lock
@@ -100,9 +92,9 @@ void output_path(std::string path)
     log_path = path;
 }
 
-void append_output(bool enable) {
+void append_output(bool enable)
+{
     append_log = enable;
-
 }
 void enqueue(Log_entry entry)
 {
@@ -242,19 +234,152 @@ void start_logging()
     }
 }
 
+std::string str_toupper(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return std::toupper(c); } // correct
+    );
+    return s;
+}
+
+void add_to_filters(std::string filter)
+{
+    std::string upper_filter = str_toupper(filter);
+    if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
+        filters.emplace(upper_filter, "");
+    } else {
+        std::cout << "vex_logger: couldn't add, because of unknown filter: (" << filter << ")" << std::endl;
+    }
+}
+
+void remove_from_filter(std::string filter)
+{
+    std::string upper_filter = str_toupper(filter);
+    if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
+        if (filters.count(upper_filter) > 0) {
+            filters.erase(upper_filter);
+        } else {
+
+            std::cout << "vex_logger: couldn't remove: (" << filter << ") since filter isn't added."<< std::endl;
+        }
+    } else {
+        std::cout << "vex_logger: couldn't remove, because of unknown filter: (" << filter << ")" << std::endl;
+    }
+}
+
+void remove_filter(std::string filter1)
+{
+    vex_logger::remove_from_filter(filter1);
+}
+
+void remove_filter(std::string filter1, std::string filter2)
+{
+    vex_logger::remove_from_filter(filter1);
+    vex_logger::remove_from_filter(filter2);
+}
+
+void remove_filter(std::string filter1, std::string filter2, std::string filter3)
+{
+    vex_logger::remove_from_filter(filter1);
+    vex_logger::remove_from_filter(filter2);
+    vex_logger::remove_from_filter(filter3);
+}
+
+void remove_filter(std::string filter1, std::string filter2, std::string filter3, std::string filter4)
+{
+    vex_logger::remove_from_filter(filter1);
+    vex_logger::remove_from_filter(filter2);
+    vex_logger::remove_from_filter(filter3);
+    vex_logger::remove_from_filter(filter4);
+}
+
+void print_filters()
+{
+    for (const auto& x : filters) {
+        std::cout << x.first << ": " << x.second << "\n";
+    }
+}
+
 void log(std::string log_severity, int line, const char* file, const char* msg, ...)
 {
-    start_logging();
-    std::va_list args;
-    char buffer[256] = { 0 };
-    va_start(args, msg);
-    vsprintf(buffer, msg, args);
-    va_end(args);
-    std::string message = std::string(buffer);
-    Log_entry entry = create_log_entry(log_severity, message, file, line);
-    print_log_entry(entry);
-    // for non blocking maybe threadpool some day
-    std::thread enqueue_thread(enqueue, entry);
-    enqueue_thread.join();
+    if (filters.empty() || (!filters.empty() && filters.count(log_severity) > 0)) {
+        start_logging();
+        std::va_list args;
+        char buffer[256] = { 0 };
+        va_start(args, msg);
+        vsprintf(buffer, msg, args);
+        va_end(args);
+
+        std::string message = std::string(buffer);
+        Log_entry entry = create_log_entry(log_severity, message, file, line);
+        print_log_entry(entry);
+        // for non blocking maybe threadpool some day
+        std::thread enqueue_thread(enqueue, entry);
+        enqueue_thread.join();
+    }
 }
 };
+
+void log_append(bool enable)
+{
+    vex_logger::append_output(enable);
+}
+
+void log_output(std::string path)
+{
+    vex_logger::output_path(path);
+}
+
+void log_filter(std::string filter1)
+{
+    vex_logger::add_to_filters(filter1);
+}
+
+void log_filter(std::string filter1, std::string filter2)
+{
+    vex_logger::add_to_filters(filter1);
+    vex_logger::add_to_filters(filter2);
+}
+
+void log_filter(std::string filter1, std::string filter2, std::string filter3)
+{
+    vex_logger::add_to_filters(filter1);
+    vex_logger::add_to_filters(filter2);
+    vex_logger::add_to_filters(filter3);
+}
+
+void log_filter(std::string filter1, std::string filter2, std::string filter3, std::string filter4)
+{
+    vex_logger::add_to_filters(filter1);
+    vex_logger::add_to_filters(filter2);
+    vex_logger::add_to_filters(filter3);
+    vex_logger::add_to_filters(filter4);
+}
+
+void log_remove_filter(std::string filter1)
+{
+    vex_logger::remove_from_filter(filter1);
+}
+
+void log_remove_filter(std::string filter1, std::string filter2)
+{
+    vex_logger::remove_from_filter(filter1);
+    vex_logger::remove_from_filter(filter2);
+}
+
+void log_remove_filter(std::string filter1, std::string filter2,
+    std::string filter3)
+{
+    vex_logger::remove_from_filter(filter1);
+    vex_logger::remove_from_filter(filter2);
+    vex_logger::remove_from_filter(filter3);
+}
+
+void log_remove_filter(std::string filter1, std::string filter2,
+    std::string filter3, std::string filter4)
+{
+    vex_logger::remove_from_filter(filter1);
+    vex_logger::remove_from_filter(filter2);
+    vex_logger::remove_from_filter(filter3);
+    vex_logger::remove_from_filter(filter4);
+}
