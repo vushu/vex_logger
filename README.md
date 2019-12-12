@@ -4,8 +4,8 @@
 - tiny
 - header only logger
 
-copy the logger.h in your project and use.
-all last logged are in /tmp/vex_log.txt;
+copy the logger.h in your project and use.  
+as default all logged are written to /tmp/vex_log.txt;
 
 ## How to use
 
