@@ -210,6 +210,8 @@ void log(std::string log_severity, int line, const char* file, const char* msg, 
     std::string message = std::string(buffer);
     Log_entry entry = create_log_entry(log_severity, message, file, line);
     print_log_entry(entry);
-    enqueue(entry);
+    // for non blocking maybe threadpool some day
+    std::thread enqueue_thread(enqueue,entry);
+    enqueue_thread.join();
 }
 };
