@@ -8,10 +8,10 @@ all last logged are in /tmp/vex_last_log.txt;
 ## How to use
 
 ```cpp
-log_info("hello %d", 700);
-log_warn("hello %d", 700);
-log_debug("hello %d", 700);
-log_error("hello %d", 700);
+log_info("Hello agent %d", 007);
+log_warn("Hello agent %d", 007);
+log_debug("Hello agent %d", 007);
+log_error("Hello agent %d", 007);
 
 ```
 
