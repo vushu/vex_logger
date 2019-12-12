@@ -19,6 +19,7 @@ log_error("Hello agent %s", "007");
 
 // to append instead of overwritting the log file
 log_append(true);
+
 // to set your own output path
 log_output("/home/myuser/my_log.txt");
 
@@ -32,7 +33,3 @@ log_remove_filter("info", "warn");
 
 ## Showcase
 ![](log_example.png)
-
-## TODO:
-Filter function
-
