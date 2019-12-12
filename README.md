@@ -5,8 +5,7 @@
 - thread safe
 - header only logger
 
-copy the logger.h in your project and use.  
-as default all logs are written to /tmp/vex_log.txt;
+copy the logger.h in your project and use, as default all logs are written to /tmp/vex_log.txt;
 
 ## How to use
 
