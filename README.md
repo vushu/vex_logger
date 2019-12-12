@@ -2,6 +2,7 @@
 
 - simple
 - tiny
+- thread safe
 - header only logger
 
 copy the logger.h in your project and use.  
