@@ -23,28 +23,28 @@
 #pragma once
 
 #define log_info(msg) \
-    vex_logger::log_single("INFO", __LINE__, __FILE__, msg)
+    vex_logger::log("INFO", __LINE__, __FILE__, msg)
 
 #define log_warn(msg) \
-    vex_logger::log_single("WARN", __LINE__, __FILE__, msg)
+    vex_logger::log("WARN", __LINE__, __FILE__, msg)
 
 #define log_debug(msg) \
-    vex_logger::log_single("DEBUG", __LINE__, __FILE__, msg)
+    vex_logger::log("DEBUG", __LINE__, __FILE__, msg)
 
 #define log_error(msg) \
-    vex_logger::log_single("ERROR", __LINE__, __FILE__, msg)
+    vex_logger::log("ERROR", __LINE__, __FILE__, msg)
 
 #define log_infof(msg, ...) \
-    vex_logger::log("INFO", __LINE__, __FILE__, msg, __VA_ARGS__)
+    vex_logger::logf("INFO", __LINE__, __FILE__, msg, __VA_ARGS__)
 
 #define log_warnf(msg, ...) \
-    vex_logger::log("WARN", __LINE__, __FILE__, msg, __VA_ARGS__)
+    vex_logger::logf("WARN", __LINE__, __FILE__, msg, __VA_ARGS__)
 
 #define log_debugf(msg, ...) \
-    vex_logger::log("DEBUG", __LINE__, __FILE__, msg, __VA_ARGS__)
+    vex_logger::logf("DEBUG", __LINE__, __FILE__, msg, __VA_ARGS__)
 
 #define log_errorf(msg, ...) \
-    vex_logger::log("ERROR", __LINE__, __FILE__, msg, __VA_ARGS__)
+    vex_logger::logf("ERROR", __LINE__, __FILE__, msg, __VA_ARGS__)
 
 #include <algorithm>
 #include <cctype>
@@ -327,7 +327,7 @@ static inline void print_filters()
     std::cout << "\n***************************************\n";
 }
 
-static inline void log_single(std::string log_severity, int line, const char* file, const char* msg)
+static inline void log(std::string log_severity, int line, const char* file, const char* msg)
 {
     if (Singleton<std::set<std::string>>().getInstance().empty()
         || (!Singleton<std::set<std::string>>().getInstance().empty()
@@ -341,7 +341,7 @@ static inline void log_single(std::string log_severity, int line, const char* fi
         enqueue_thread.join();
     }
 }
-static inline void log(std::string log_severity, int line, const char* file, const char* msg, ...)
+static inline void logf(std::string log_severity, int line, const char* file, const char* msg, ...)
 {
     if (Singleton<std::set<std::string>>().getInstance().empty()
         || (!Singleton<std::set<std::string>>().getInstance().empty()
