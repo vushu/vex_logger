@@ -22,16 +22,28 @@
  */
 #pragma once
 
-#define log_info(msg, ...) \
+#define log_info(msg) \
+    vex_logger::log_single("INFO", __LINE__, __FILE__, msg)
+
+#define log_warn(msg) \
+    vex_logger::log_single("WARN", __LINE__, __FILE__, msg)
+
+#define log_debug(msg) \
+    vex_logger::log_single("DEBUG", __LINE__, __FILE__, msg)
+
+#define log_error(msg) \
+    vex_logger::log_single("ERROR", __LINE__, __FILE__, msg)
+
+#define log_infof(msg, ...) \
     vex_logger::log("INFO", __LINE__, __FILE__, msg, __VA_ARGS__)
 
-#define log_warn(msg, ...) \
+#define log_warnf(msg, ...) \
     vex_logger::log("WARN", __LINE__, __FILE__, msg, __VA_ARGS__)
 
-#define log_debug(msg, ...) \
+#define log_debugf(msg, ...) \
     vex_logger::log("DEBUG", __LINE__, __FILE__, msg, __VA_ARGS__)
 
-#define log_error(msg, ...) \
+#define log_errorf(msg, ...) \
     vex_logger::log("ERROR", __LINE__, __FILE__, msg, __VA_ARGS__)
 
 #include <algorithm>
@@ -41,9 +53,9 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <stdio.h>
 #include <string>
 #include <sys/time.h>
@@ -78,7 +90,6 @@ T* Singleton<T>::m_instance = nullptr;
 
 static std::string log_path = "/tmp/vex_log.txt";
 
-//static std::map<std::string, std::string> filters;
 static bool append_log = false;
 static bool log_listener_started = false;
 //lock
@@ -260,8 +271,7 @@ static inline void add_to_filters(std::string filter)
 {
     std::string upper_filter = str_toupper(filter);
     if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
-        Singleton<std::map<std::string, std::string>>().getInstance().emplace(upper_filter, "");
-        //filters.emplace(upper_filter, "");
+        Singleton<std::set<std::string>>().getInstance().emplace(upper_filter);
     } else {
         std::cout << "vex_logger: couldn't add, because of unknown filter: (" << filter << ")" << std::endl;
     }
@@ -271,11 +281,8 @@ static inline void remove_from_filter(std::string filter)
 {
     std::string upper_filter = str_toupper(filter);
     if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
-        //if (filters.count(upper_filter) > 0) {
-        if (Singleton<std::map<std::string, std::string>>().getInstance().count(upper_filter) > 0) {
-            Singleton<std::map<std::string, std::string>>().getInstance().erase(upper_filter);
-            ////filters.erase(upper_filter);
-            //filters.erase(upper_filter);
+        if (Singleton<std::set<std::string>>().getInstance().count(upper_filter) > 0) {
+            Singleton<std::set<std::string>>().getInstance().erase(upper_filter);
         } else {
 
             std::cout << "vex_logger: couldn't remove: (" << filter << ") since filter isn't added." << std::endl;
@@ -314,17 +321,31 @@ static inline void remove_filter(std::string filter1, std::string filter2, std::
 static inline void print_filters()
 {
     std::cout << "*********** Filters Added *************\n";
-    for (const auto& x : Singleton<std::map<std::string, std::string>>().getInstance()) {
-        std::cout << x.first << " ";
+    for (const auto& x : Singleton<std::set<std::string>>().getInstance()) {
+        std::cout << x << " ";
     }
     std::cout << "\n***************************************\n";
 }
 
+static inline void log_single(std::string log_severity, int line, const char* file, const char* msg)
+{
+    if (Singleton<std::set<std::string>>().getInstance().empty()
+        || (!Singleton<std::set<std::string>>().getInstance().empty()
+               && Singleton<std::set<std::string>>().getInstance().count(log_severity) > 0)) {
+        start_logging();
+
+        Log_entry entry = create_log_entry(log_severity, std::string(msg), file, line);
+        print_log_entry(entry);
+        // for non blocking maybe threadpool some day
+        std::thread enqueue_thread(enqueue, entry);
+        enqueue_thread.join();
+    }
+}
 static inline void log(std::string log_severity, int line, const char* file, const char* msg, ...)
 {
-    if (Singleton<std::map<std::string, std::string>>().getInstance().empty()
-        || (!Singleton<std::map<std::string, std::string>>().getInstance().empty()
-               && Singleton<std::map<std::string, std::string>>().getInstance().count(log_severity) > 0)) {
+    if (Singleton<std::set<std::string>>().getInstance().empty()
+        || (!Singleton<std::set<std::string>>().getInstance().empty()
+               && Singleton<std::set<std::string>>().getInstance().count(log_severity) > 0)) {
         start_logging();
         std::va_list args;
         char buffer[256] = { 0 };
