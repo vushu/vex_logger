@@ -21,8 +21,7 @@
  * SOFTWARE.
  */
 #pragma once
-#include <algorithm>
-#include <cctype>
+
 #define log_info(msg, ...) \
     vex_logger::log("INFO", __LINE__, __FILE__, msg, __VA_ARGS__)
 
@@ -35,6 +34,8 @@
 #define log_error(msg, ...) \
     vex_logger::log("ERROR", __LINE__, __FILE__, msg, __VA_ARGS__)
 
+#include <algorithm>
+#include <cctype>
 #include <cstdarg>
 #include <cstdio>
 #include <ctime>
@@ -59,10 +60,25 @@ struct Log_entry {
     std::string current_file;
     std::string current_line;
 };
+template <typename T>
+class Singleton {
+public:
+    static T& getInstance()
+    {
+        static T instance;
+        return instance;
+    }
+
+private:
+    static T* m_instance;
+};
+
+template <typename T>
+T* Singleton<T>::m_instance = nullptr;
 
 static std::string log_path = "/tmp/vex_log.txt";
 
-static std::map<std::string, std::string> filters;
+//static std::map<std::string, std::string> filters;
 static bool append_log = false;
 static bool log_listener_started = false;
 //lock
@@ -244,7 +260,8 @@ static inline void add_to_filters(std::string filter)
 {
     std::string upper_filter = str_toupper(filter);
     if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
-        filters.emplace(upper_filter, "");
+        Singleton<std::map<std::string, std::string>>().getInstance().emplace(upper_filter, "");
+        //filters.emplace(upper_filter, "");
     } else {
         std::cout << "vex_logger: couldn't add, because of unknown filter: (" << filter << ")" << std::endl;
     }
@@ -254,8 +271,11 @@ static inline void remove_from_filter(std::string filter)
 {
     std::string upper_filter = str_toupper(filter);
     if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
-        if (filters.count(upper_filter) > 0) {
-            filters.erase(upper_filter);
+        //if (filters.count(upper_filter) > 0) {
+        if (Singleton<std::map<std::string, std::string>>().getInstance().count(upper_filter) > 0) {
+            Singleton<std::map<std::string, std::string>>().getInstance().erase(upper_filter);
+            ////filters.erase(upper_filter);
+            //filters.erase(upper_filter);
         } else {
 
             std::cout << "vex_logger: couldn't remove: (" << filter << ") since filter isn't added." << std::endl;
@@ -293,14 +313,18 @@ static inline void remove_filter(std::string filter1, std::string filter2, std::
 
 static inline void print_filters()
 {
-    for (const auto& x : filters) {
-        std::cout << x.first << ": " << x.second << "\n";
+    std::cout << "*********** Filters Added *************\n";
+    for (const auto& x : Singleton<std::map<std::string, std::string>>().getInstance()) {
+        std::cout << x.first << " ";
     }
+    std::cout << "\n***************************************\n";
 }
 
 static inline void log(std::string log_severity, int line, const char* file, const char* msg, ...)
 {
-    if (filters.empty() || (!filters.empty() && filters.count(log_severity) > 0)) {
+    if (Singleton<std::map<std::string, std::string>>().getInstance().empty()
+        || (!Singleton<std::map<std::string, std::string>>().getInstance().empty()
+               && Singleton<std::map<std::string, std::string>>().getInstance().count(log_severity) > 0)) {
         start_logging();
         std::va_list args;
         char buffer[256] = { 0 };
@@ -317,7 +341,6 @@ static inline void log(std::string log_severity, int line, const char* file, con
     }
 }
 };
-
 
 static inline void log_append(bool enable)
 {
