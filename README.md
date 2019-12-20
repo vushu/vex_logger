@@ -11,11 +11,17 @@ copy the vex_logger.h in your project and use, as default all logs are written t
 ## How to use
 
 ```cpp
-// logs functions:
-log_info("Hello agent %s", "007");
-log_warn("Hello agent %s", "007");
-log_debug("Hello agent %s", "007");
-log_error("Hello agent %s", "007");
+// logs with string format:
+log_infof("Hello agent %s", "007");
+log_warnf("Hello agent %s", "007");
+log_debugf("Hello agent %s", "007");
+log_errorf("Hello agent %s", "007");
+
+//log with single string
+log_info("Yo yo logger");
+log_debug("Yo yo logger");
+log_warn("Yo yo logger");
+log_error("Yo yo logger");
 
 // to append instead of overwritting the log file
 log_append(true);
