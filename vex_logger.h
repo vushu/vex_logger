@@ -20,9 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 #pragma once
-
 #include <algorithm>
 #include <cctype>
 #define log_info(msg, ...) \
@@ -62,20 +60,20 @@ struct Log_entry {
     std::string current_line;
 };
 
-std::string log_path = "/tmp/vex_log.txt";
+static std::string log_path = "/tmp/vex_log.txt";
 
-std::map<std::string, std::string> filters;
-bool append_log = false;
-bool log_listener_started = false;
+static std::map<std::string, std::string> filters;
+static bool append_log = false;
+static bool log_listener_started = false;
 //lock
-std::mutex buffer_mutex;
+static std::mutex buffer_mutex;
 //max buffersize
-const int buffer_size = 128;
-Log_entry ring_buffer[buffer_size];
-int read_index = 0;
-int write_index = 0;
+static const int buffer_size = 128;
+static Log_entry ring_buffer[buffer_size];
+static int read_index = 0;
+static int write_index = 0;
 
-std::string get_file_name(std::string filePath, bool withExtension = true, char seperator = '/')
+static std::string get_file_name(std::string filePath, bool withExtension = true, char seperator = '/')
 {
     // Get last dot position
     std::size_t dotPos = filePath.rfind('.');
@@ -87,16 +85,16 @@ std::string get_file_name(std::string filePath, bool withExtension = true, char 
     return "";
 }
 
-void output_path(std::string path)
+static inline void output_path(std::string path)
 {
     log_path = path;
 }
 
-void append_output(bool enable)
+static inline void append_output(bool enable)
 {
     append_log = enable;
 }
-void enqueue(Log_entry entry)
+static inline void enqueue(Log_entry entry)
 {
     std::unique_lock<std::mutex> lock{ buffer_mutex };
     if (write_index >= buffer_size) {
@@ -108,7 +106,7 @@ void enqueue(Log_entry entry)
     lock.unlock();
 }
 
-bool has_entry()
+static inline bool has_entry()
 {
 
     if (read_index > write_index) {
@@ -117,7 +115,7 @@ bool has_entry()
     return read_index > write_index;
 }
 
-Log_entry dequeue()
+static Log_entry dequeue()
 {
     std::unique_lock<std::mutex> lock{ buffer_mutex };
     if (read_index > write_index) {
@@ -137,7 +135,7 @@ Log_entry dequeue()
     return entry;
 }
 
-std::string get_color_text(std::string text)
+static std::string get_color_text(std::string text)
 {
     if (text == "INFO")
         return "\x1B[92m" + text + "\033[0m ";
@@ -152,7 +150,7 @@ std::string get_color_text(std::string text)
     return text;
 }
 
-std::string get_text(std::string text)
+static std::string get_text(std::string text)
 {
 
     if (text == "WARN")
@@ -162,14 +160,14 @@ std::string get_text(std::string text)
     return text;
 }
 
-void write_file(std::string entry)
+static void write_file(std::string entry)
 {
     std::ofstream outfile;
     outfile.open(log_path, std::ios_base::app); // append instead of overwrite
     outfile << entry;
 }
 
-void print_log_entry(Log_entry log_entry)
+static void print_log_entry(Log_entry log_entry)
 {
     std::string color_text = get_color_text(log_entry.log_severity);
     std::string log_str = log_entry.log_date + " " + color_text + " " + log_entry.current_file + ":" + log_entry.current_line + " | " + log_entry.log_message + "\n";
@@ -178,7 +176,7 @@ void print_log_entry(Log_entry log_entry)
     write_file(log_text);
 }
 
-void read_from_buffer()
+static inline void read_from_buffer()
 {
     while (read_index <= write_index) {
         Log_entry entry = dequeue();
@@ -199,7 +197,7 @@ static std::string get_timestamp()
     return buffer;
 }
 
-Log_entry create_log_entry(std::string log_severity, std::string message, std::string file, int line)
+static Log_entry create_log_entry(std::string log_severity, std::string message, std::string file, int line)
 {
     Log_entry log_entry;
     log_entry.log_severity = log_severity;
@@ -210,7 +208,7 @@ Log_entry create_log_entry(std::string log_severity, std::string message, std::s
     return log_entry;
 }
 
-void run_log_listener()
+static void run_log_listener()
 {
     while (true) {
         if (has_entry()) {
@@ -221,7 +219,7 @@ void run_log_listener()
     }
 }
 
-void start_logging()
+static inline void start_logging()
 {
     if (log_listener_started) {
         if (!append_log) {
@@ -234,7 +232,7 @@ void start_logging()
     }
 }
 
-std::string str_toupper(std::string s)
+static inline std::string str_toupper(std::string s)
 {
     std::transform(s.begin(), s.end(), s.begin(),
         [](unsigned char c) { return std::toupper(c); } // correct
@@ -242,7 +240,7 @@ std::string str_toupper(std::string s)
     return s;
 }
 
-void add_to_filters(std::string filter)
+static inline void add_to_filters(std::string filter)
 {
     std::string upper_filter = str_toupper(filter);
     if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
@@ -252,7 +250,7 @@ void add_to_filters(std::string filter)
     }
 }
 
-void remove_from_filter(std::string filter)
+static inline void remove_from_filter(std::string filter)
 {
     std::string upper_filter = str_toupper(filter);
     if (upper_filter == "INFO" || upper_filter == "DEBUG" || upper_filter == "WARN" || upper_filter == "ERROR") {
@@ -260,32 +258,32 @@ void remove_from_filter(std::string filter)
             filters.erase(upper_filter);
         } else {
 
-            std::cout << "vex_logger: couldn't remove: (" << filter << ") since filter isn't added."<< std::endl;
+            std::cout << "vex_logger: couldn't remove: (" << filter << ") since filter isn't added." << std::endl;
         }
     } else {
         std::cout << "vex_logger: couldn't remove, because of unknown filter: (" << filter << ")" << std::endl;
     }
 }
 
-void remove_filter(std::string filter1)
+static inline void remove_filter(std::string filter1)
 {
     vex_logger::remove_from_filter(filter1);
 }
 
-void remove_filter(std::string filter1, std::string filter2)
+static inline void remove_filter(std::string filter1, std::string filter2)
 {
     vex_logger::remove_from_filter(filter1);
     vex_logger::remove_from_filter(filter2);
 }
 
-void remove_filter(std::string filter1, std::string filter2, std::string filter3)
+static inline void remove_filter(std::string filter1, std::string filter2, std::string filter3)
 {
     vex_logger::remove_from_filter(filter1);
     vex_logger::remove_from_filter(filter2);
     vex_logger::remove_from_filter(filter3);
 }
 
-void remove_filter(std::string filter1, std::string filter2, std::string filter3, std::string filter4)
+static inline void remove_filter(std::string filter1, std::string filter2, std::string filter3, std::string filter4)
 {
     vex_logger::remove_from_filter(filter1);
     vex_logger::remove_from_filter(filter2);
@@ -293,14 +291,14 @@ void remove_filter(std::string filter1, std::string filter2, std::string filter3
     vex_logger::remove_from_filter(filter4);
 }
 
-void print_filters()
+static inline void print_filters()
 {
     for (const auto& x : filters) {
         std::cout << x.first << ": " << x.second << "\n";
     }
 }
 
-void log(std::string log_severity, int line, const char* file, const char* msg, ...)
+static inline void log(std::string log_severity, int line, const char* file, const char* msg, ...)
 {
     if (filters.empty() || (!filters.empty() && filters.count(log_severity) > 0)) {
         start_logging();
@@ -320,35 +318,36 @@ void log(std::string log_severity, int line, const char* file, const char* msg, 
 }
 };
 
-void log_append(bool enable)
+
+static inline void log_append(bool enable)
 {
     vex_logger::append_output(enable);
 }
 
-void log_output(std::string path)
+static inline void log_output(std::string path)
 {
     vex_logger::output_path(path);
 }
 
-void log_filter(std::string filter1)
+static inline void log_filter(std::string filter1)
 {
     vex_logger::add_to_filters(filter1);
 }
 
-void log_filter(std::string filter1, std::string filter2)
+static inline void log_filter(std::string filter1, std::string filter2)
 {
     vex_logger::add_to_filters(filter1);
     vex_logger::add_to_filters(filter2);
 }
 
-void log_filter(std::string filter1, std::string filter2, std::string filter3)
+static inline void log_filter(std::string filter1, std::string filter2, std::string filter3)
 {
     vex_logger::add_to_filters(filter1);
     vex_logger::add_to_filters(filter2);
     vex_logger::add_to_filters(filter3);
 }
 
-void log_filter(std::string filter1, std::string filter2, std::string filter3, std::string filter4)
+static inline void log_filter(std::string filter1, std::string filter2, std::string filter3, std::string filter4)
 {
     vex_logger::add_to_filters(filter1);
     vex_logger::add_to_filters(filter2);
@@ -356,18 +355,18 @@ void log_filter(std::string filter1, std::string filter2, std::string filter3, s
     vex_logger::add_to_filters(filter4);
 }
 
-void log_remove_filter(std::string filter1)
+static inline void log_remove_filter(std::string filter1)
 {
     vex_logger::remove_from_filter(filter1);
 }
 
-void log_remove_filter(std::string filter1, std::string filter2)
+static inline void log_remove_filter(std::string filter1, std::string filter2)
 {
     vex_logger::remove_from_filter(filter1);
     vex_logger::remove_from_filter(filter2);
 }
 
-void log_remove_filter(std::string filter1, std::string filter2,
+static inline void log_remove_filter(std::string filter1, std::string filter2,
     std::string filter3)
 {
     vex_logger::remove_from_filter(filter1);
@@ -375,7 +374,7 @@ void log_remove_filter(std::string filter1, std::string filter2,
     vex_logger::remove_from_filter(filter3);
 }
 
-void log_remove_filter(std::string filter1, std::string filter2,
+static inline void log_remove_filter(std::string filter1, std::string filter2,
     std::string filter3, std::string filter4)
 {
     vex_logger::remove_from_filter(filter1);
